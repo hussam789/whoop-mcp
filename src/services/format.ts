@@ -1,6 +1,8 @@
 import type { ResponseFormat, ToolResponse } from "../types.js";
 import { redactErrorMessage, redactSensitive } from "./redaction.js";
 
+const COLLECTION_PREVIEW_LIMIT = 8;
+
 export function makeResponse<T>(data: T, format: ResponseFormat, markdown: string): ToolResponse<T> {
   const safeData = redactSensitive(data) as T;
   const safeMarkdown = redactErrorMessage(markdown);
@@ -35,7 +37,7 @@ export function formatCollection(title: string, records: unknown[], meta: Record
     lines.push(`- **${key}**: ${formatScalar(value)}`);
   }
   lines.push("");
-  const preview = records.slice(0, 8);
+  const preview = records.slice(0, COLLECTION_PREVIEW_LIMIT);
   for (const [index, record] of preview.entries()) {
     if (record && typeof record === "object") {
       const object = record as Record<string, unknown>;
