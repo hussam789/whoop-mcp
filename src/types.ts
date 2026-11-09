@@ -18,6 +18,7 @@ export interface WhoopConfig {
   privacyMode: PrivacyMode;
   cacheEnabled: boolean;
   cachePath: string;
+  cacheMaxAgeDays?: number;
 }
 
 export interface WhoopCollection<T = unknown> {

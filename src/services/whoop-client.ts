@@ -260,7 +260,7 @@ export class WhoopClient {
   }
 
   private getCache(): WhoopCache {
-    this.cache ??= new WhoopCache(this.config.cachePath);
+    this.cache ??= new WhoopCache(this.config.cachePath, this.config.cacheMaxAgeDays);
     return this.cache;
   }
 

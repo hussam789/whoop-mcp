@@ -412,6 +412,7 @@ WHOOP_PRIVACY_MODE=structured        # summary | structured | raw
 WHOOP_CACHE=sqlite                   # optional read-through cache
 WHOOP_TOKEN_PATH=~/.whoop-mcp/tokens.json
 WHOOP_CACHE_PATH=~/.whoop-mcp/cache.sqlite
+WHOOP_CACHE_MAX_AGE_DAYS=30           # drop cached responses older than N days on startup
 ```
 
 ## Hermes / remote setup

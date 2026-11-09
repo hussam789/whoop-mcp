@@ -7,6 +7,9 @@ export interface CacheStatus extends Record<string, unknown> {
   path: string;
   entries: number;
   newest_cached_at?: string;
+  oldest_cached_at?: string;
+  max_age_days?: number;
+  pruned_on_open?: number;
   http_cache?: {
     size: number;
     hit_count: number;
@@ -19,8 +22,9 @@ export interface CacheStatus extends Record<string, unknown> {
 
 export class WhoopCache {
   private db: Database.Database;
+  private prunedOnOpen = 0;
 
-  constructor(private readonly path: string) {
+  constructor(private readonly path: string, private readonly maxAgeDays?: number) {
     mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
     this.db = new Database(path);
     this.db.pragma("journal_mode = WAL");
@@ -35,6 +39,7 @@ export class WhoopCache {
       );
       CREATE INDEX IF NOT EXISTS api_cache_cached_at_idx ON api_cache(cached_at);
     `);
+    if (maxAgeDays !== undefined) this.prunedOnOpen = this.prune(maxAgeDays);
   }
 
   get(method: string, url: string): unknown | undefined {
@@ -63,9 +68,24 @@ export class WhoopCache {
     });
   }
 
+  /** Delete entries cached more than `maxAgeDays` ago; returns the number removed. */
+  prune(maxAgeDays: number): number {
+    // cached_at is an ISO-8601 UTC string, so lexical comparison orders by time.
+    const cutoff = new Date(Date.now() - maxAgeDays * 86_400_000).toISOString();
+    return this.db.prepare("DELETE FROM api_cache WHERE cached_at < ?").run(cutoff).changes;
+  }
+
   status(): CacheStatus {
-    const row = this.db.prepare("SELECT COUNT(*) AS entries, MAX(cached_at) AS newest_cached_at FROM api_cache").get() as { entries: number; newest_cached_at?: string };
-    return { enabled: true, path: this.path, entries: row.entries, newest_cached_at: row.newest_cached_at };
+    const row = this.db.prepare("SELECT COUNT(*) AS entries, MAX(cached_at) AS newest_cached_at, MIN(cached_at) AS oldest_cached_at FROM api_cache").get() as { entries: number; newest_cached_at?: string; oldest_cached_at?: string };
+    return {
+      enabled: true,
+      path: this.path,
+      entries: row.entries,
+      newest_cached_at: row.newest_cached_at ?? undefined,
+      oldest_cached_at: row.oldest_cached_at ?? undefined,
+      max_age_days: this.maxAgeDays,
+      pruned_on_open: this.maxAgeDays === undefined ? undefined : this.prunedOnOpen
+    };
   }
 }
 

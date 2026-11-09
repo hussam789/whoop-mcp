@@ -144,6 +144,9 @@ export const CacheStatusOutputSchema = z.object({
   path: z.string(),
   entries: z.number().int().nonnegative(),
   newest_cached_at: z.string().optional(),
+  oldest_cached_at: z.string().optional(),
+  max_age_days: z.number().positive().optional(),
+  pruned_on_open: z.number().int().nonnegative().optional(),
   http_cache: z.object({
     size: z.number().int().nonnegative(),
     hit_count: z.number().int().nonnegative(),
