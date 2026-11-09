@@ -20,6 +20,7 @@ export function getConfig(): WhoopConfig {
   const scopes = (value("WHOOP_SCOPES")?.split(/[ ,]+/).filter(Boolean)) ?? DEFAULT_SCOPES;
   const privacyMode = parsePrivacyMode(value("WHOOP_PRIVACY_MODE"));
   const cacheEnabled = parseBool(value("WHOOP_CACHE"), false);
+  const cacheMaxAgeDays = parseMaxAgeDays(value("WHOOP_CACHE_MAX_AGE_DAYS"));
 
   const missing = [
     ["WHOOP_CLIENT_ID", clientId],
@@ -42,13 +43,21 @@ export function getConfig(): WhoopConfig {
     tokenPath,
     privacyMode,
     cacheEnabled,
-    cachePath
+    cachePath,
+    cacheMaxAgeDays
   };
 }
 
 function parsePrivacyMode(value: string | undefined): PrivacyMode {
   if (value === "summary" || value === "structured" || value === "raw") return value;
   return "structured";
+}
+
+// Unset or invalid keeps every cached response, matching the pre-retention behavior.
+function parseMaxAgeDays(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const days = Number(value);
+  return Number.isFinite(days) && days > 0 ? days : undefined;
 }
 
 function parseBool(value: string | undefined, fallback: boolean): boolean {

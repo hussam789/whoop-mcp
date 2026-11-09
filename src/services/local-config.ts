@@ -10,7 +10,8 @@ export const LOCAL_CONFIG_KEYS = [
   "WHOOP_SCOPES",
   "WHOOP_PRIVACY_MODE",
   "WHOOP_CACHE",
-  "WHOOP_CACHE_PATH"
+  "WHOOP_CACHE_PATH",
+  "WHOOP_CACHE_MAX_AGE_DAYS"
 ] as const;
 
 export type LocalConfigKey = typeof LOCAL_CONFIG_KEYS[number];
